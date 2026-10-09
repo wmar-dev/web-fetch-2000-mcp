@@ -33,7 +33,14 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
       - run: uv run playwright install --with-deps chromium
-      - run: uv run python -m camoufox fetch
+      - name: Install Camoufox
+        # unauthenticated GitHub API calls are rate limited on shared runners (403 while the
+        # command still exits 0), so authenticate and then verify the install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run python -m camoufox fetch
+          uv run python -c "from camoufox.pkgman import installed_verstr; print('camoufox', installed_verstr())"
       - run: uv run pytest -m browser
       - run: uv run pytest -m slow
 
