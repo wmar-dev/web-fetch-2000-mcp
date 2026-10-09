@@ -1,0 +1,24 @@
+# Example: run the MCP server in a container with a persistent, shared data volume.
+#
+# Interactive stdio usage (what an MCP client should launch):
+#   docker compose run --rm -T web-fetch
+# or without compose:
+#   docker run -i --rm --shm-size=1g -v web-fetch-2000-data:/data web-fetch-2000
+services:
+  web-fetch:
+    image: web-fetch-2000
+    build:
+      context: .
+      target: full          # use "slim" for the HTTP strategy only
+    stdin_open: true        # MCP uses stdio
+    shm_size: 1gb           # Chromium needs more than Docker's 64 MB default
+    init: false             # tini is already the entrypoint
+    environment:
+      WEBFETCH_LOG_LEVEL: INFO
+      # WEBFETCH_CACHE_TTL_S: "7200"
+      # WEBFETCH_ALLOW_PRIVATE_ADDRESSES: "0"   # host.docker.internal etc. stay blocked
+    volumes:
+      - web-fetch-data:/data   # use a named volume (not a bind mount) for the SQLite store
+
+volumes:
+  web-fetch-data:

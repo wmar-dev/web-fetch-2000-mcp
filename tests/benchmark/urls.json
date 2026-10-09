@@ -1,0 +1,8 @@
+[
+  {"url": "https://example.com/", "kind": "static"},
+  {"url": "https://en.wikipedia.org/wiki/Web_scraping", "kind": "static"},
+  {"url": "https://quotes.toscrape.com/", "kind": "static"},
+  {"url": "https://quotes.toscrape.com/js/", "kind": "javascript"},
+  {"url": "https://quotes.toscrape.com/scroll", "kind": "javascript"},
+  {"url": "https://nowsecure.nl/", "kind": "protected", "optional": true}
+]

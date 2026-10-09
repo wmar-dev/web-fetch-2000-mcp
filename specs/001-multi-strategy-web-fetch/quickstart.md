@@ -44,8 +44,11 @@ Equivalent environment form: `WEBFETCH_CACHE_TTL_S=7200`.
 
 ## Run the tests
 
-- Default offline suite: `uv run pytest -m "not browser"`
-- Real-browser suite: `uv run pytest -m browser`
+- Default offline suite (no browsers, no network): `uv run pytest`
+- Real-browser suite (Chromium + Camoufox, includes end-to-end escalation): `uv run pytest -m browser`
+- Load tests: `uv run pytest -m slow` (add `-m "slow and browser"` for the browser load test)
+- Opt-in live benchmark for SC-001 to SC-003: `uv run python tests/benchmark/run_benchmark.py`
+- Container smoke test: `uv run python scripts/smoke_container.py web-fetch-2000:full --browsers`
 
 ## Validation scenarios
 
@@ -76,3 +79,31 @@ Equivalent environment form: `WEBFETCH_CACHE_TTL_S=7200`.
 | 23 | Per-domain limits | Send 50 concurrent `fetch` calls to one domain | In-flight never exceeds `domain_concurrency`; request rate stays within `domain_rate_per_s` (SC-014) |
 | 24 | Back-off on 429 | Local server returns 429 with `Retry-After: 2`, then 200 | Waits about 2 s, retries the same strategy, no escalation, memory unchanged (SC-015) |
 | 25 | Reset and clear | `reset_memory`, `clear_cache` | Counts returned; memory empty afterward |
+| 26 | URL redaction | `fetch` a URL with `?token=secret#frag` and read stderr and `site_memory` | No query string, fragment or credentials appear in logs or memory; the cache keeps the full URL |
+| 27 | Identity override | Set `user_agent = "custom/1.0"` and fetch | The site sees `custom/1.0`; browser strategies keep their native identity |
+| 28 | Forced strategy unavailable | Force `strategy: stealth` without Camoufox installed, or with it disabled | `strategy_unavailable` error naming the reason; no other strategy is tried (FR-029) |
+| 29 | Graceful shutdown | Fetch with a browser strategy, then close stdin or send SIGTERM | Process exits 0; no orphaned browser processes (FR-018) |
+| 30 | Oversized body | Fetch a page larger than `max_response_bytes` | Content truncated at the limit with `truncated: true` and a warning; a cut-off PDF returns `too_large` |
+
+## Where each scenario is automated
+
+| Scenarios | Tests |
+|---|---|
+| 1, 2, 3 | `tests/integration/test_router_escalation.py`, `tests/browser/test_end_to_end.py` |
+| 4, 5 | `tests/integration/test_memory_persistence.py`, `tests/browser/test_end_to_end.py` |
+| 6, 7, 8, 22 | `tests/integration/test_cache_behavior.py`, `tests/integration/test_singleflight.py` |
+| 9, 10, 30 | `tests/integration/test_output_control.py`, `tests/integration/test_http_strategy.py` |
+| 11 | `tests/unit/test_safety.py`, `tests/contract/test_fetch_contract.py` |
+| 12 | `tests/integration/test_degraded_mode.py`, `tests/contract/test_management_tools_contract.py` |
+| 13 | `tests/integration/test_store_concurrency.py` |
+| 14, 15 | `tests/unit/test_config.py`, `tests/integration/test_config_tool.py` |
+| 16 | `tests/browser/test_headed_override.py` (headed part needs `WEBFETCH_TEST_HEADED=1`) |
+| 17 | CI matrix, `tests/unit/test_paths.py` |
+| 18, 19, 20 | `scripts/smoke_container.py`, CI `docker` job |
+| 21 | `tests/integration/test_http_strategy.py` |
+| 23, 24 | `tests/integration/test_load.py`, `tests/integration/test_backoff.py` |
+| 25 | `tests/contract/test_management_tools_contract.py` |
+| 26 | `tests/unit/test_logging.py`, `tests/integration/test_memory_persistence.py` |
+| 27 | `tests/integration/test_http_strategy.py` |
+| 28 | `tests/integration/test_forced_strategy.py` |
+| 29 | `tests/integration/test_shutdown.py` |

@@ -28,6 +28,8 @@ Storage is one SQLite database (WAL) in the per-user data directory. Types below
 | attempts[] | Attempt entries in order |
 | cache | `hit`, `miss`, `revalidated`, `bypassed` |
 | duration_ms | total |
+| content_encoding | `utf-8` or `base64` (raw output of binary types) |
+| size_bytes | size of a binary body when only metadata is returned |
 | markdown_source | `origin` (site served markdown) or `converted` (we converted); absent for raw or binary |
 | origin_tokens | token estimate supplied by the site, when present |
 | content_signals | content-usage signals supplied by the site (e.g. `ai-input=yes`), when present |
@@ -64,7 +66,7 @@ Primary key: (domain, path_prefix, strategy). Updates use atomic SQL expressions
 
 | Column | Notes |
 |--------|-------|
-| key | hash of normalized URL, output-affecting options and whether markdown negotiation was used |
+| key | hash of the normalized URL and whether markdown negotiation was used (output format and size are applied at read time: both markdown and raw bodies are stored) |
 | url, final_url, status, content_type | |
 | body_markdown, body_raw | raw stored only within the size cap |
 | etag, last_modified | for conditional revalidation |

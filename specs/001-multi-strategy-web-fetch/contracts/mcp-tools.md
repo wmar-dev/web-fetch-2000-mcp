@@ -48,7 +48,7 @@ Fetch a URL and return its content.
 
 `markdown_source` is `origin` when the site served markdown itself (content negotiation); `origin_tokens` and `content_signals` echo the site's token estimate and content-usage signals when supplied. With `format: raw` the content is whatever the site returned, which may already be markdown.
 
-`total_chars` is present for markdown output; raw output reports `total_bytes` instead, and `truncated` applies to both.
+`total_chars` is present for markdown output; raw output reports `total_bytes` instead, and `truncated` applies to both. With `format: raw`, text types come back as UTF-8 text (`content_encoding: "utf-8"`) and binary types as base64 (`content_encoding: "base64"`).
 
 Binary content without `format: raw` returns `content: ""` with `content_type`, `size_bytes` and `final_url`.
 
@@ -62,7 +62,7 @@ Binary content without `format: raw` returns `content: ""` with `content_type`, 
 }
 ```
 
-Error codes: `invalid_url`, `blocked_address`, `unsupported_scheme`, `all_strategies_failed`, `strategy_unavailable`, `timeout`, `too_large` (only when truncating at `max_response_bytes` cannot give usable output, such as a cut-off PDF; otherwise the body is truncated and `warnings` says so), `rate_limited` (the site kept asking us to back off beyond the retry limit, or queueing exceeded `timeout_s`; includes the last `retry_after_s` when known).
+Error codes: `invalid_url`, `blocked_address`, `unsupported_scheme`, `all_strategies_failed`, `strategy_unavailable`, `timeout`, `too_large` (only when truncating at `max_response_bytes` cannot give usable output, such as a cut-off PDF; otherwise the body is truncated and `warnings` says so), `store_unavailable` (management tools only: memory and cache are disabled because the store could not be opened), `rate_limited` (the site kept asking us to back off beyond the retry limit, or queueing exceeded `timeout_s`; includes the last `retry_after_s` when known).
 
 ## `site_memory`
 
@@ -70,7 +70,7 @@ Show what has been learned for a site.
 
 **Input**: `{"domain": "string", "path": "string (optional)"}`
 
-**Output**: `{"domain", "ranking": [{"strategy", "score", "successes", "failures", "mean_duration_ms", "last_attempt_at"}], "overrides": [{"path_prefix", "ranking": [...]}], "next_start_strategy": "http"}`
+**Output**: `{"domain", "ranking": [{"strategy", "score", "successes", "failures", "mean_duration_ms", "last_attempt_at"}], "overrides": [{"path_prefix", "ranking": [...]}], "next_start_strategy": "http", "reason": "string"}`
 
 ## `reset_memory`
 
@@ -94,7 +94,7 @@ List strategies, cost order and availability.
 
 **Input**: none
 
-**Output**: `{"strategies": [{"name": "http", "cost": 1, "available": true}, {"name": "browser", "cost": 2, "available": false, "reason": "browser_not_installed"}, {"name": "stealth", "cost": 3, "available": true}], "store": {"available": true, "path": "string"}}`
+**Output**: `{"strategies": [{"name": "http", "cost": 1, "available": true}, {"name": "browser", "cost": 2, "available": false, "reason": "browser_not_installed"}, {"name": "stealth", "cost": 3, "available": true}], "store": {"available": true, "path": "string"}}` (when the store failed to open: `"store": {"available": false, "error": "string"}`; a disabled strategy reports `"reason": "disabled_by_settings"`)
 
 ## `config`
 
