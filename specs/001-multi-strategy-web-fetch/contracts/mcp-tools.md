@@ -20,7 +20,8 @@ Fetch a URL and return its content.
     "fallback": {"type": "boolean", "default": true},
     "cache": {"enum": ["use", "refresh", "bypass"], "default": "use"},
     "timeout_s": {"type": "integer", "minimum": 1, "maximum": 120, "default": 30},
-    "headed": {"type": "boolean", "default": false}
+    "headed": {"type": "boolean", "default": false},
+    "negotiate_markdown": {"type": "boolean", "description": "Override the negotiate_markdown setting for this call"}
   }
 }
 ```
@@ -59,7 +60,7 @@ Binary content without `format: raw` returns `content: ""` with `content_type`, 
 }
 ```
 
-Error codes: `invalid_url`, `blocked_address`, `unsupported_scheme`, `all_strategies_failed`, `strategy_unavailable`, `timeout`, `too_large`, `rate_limited` (the site kept asking us to back off beyond the retry limit, or queueing exceeded `timeout_s`; includes the last `retry_after_s` when known).
+Error codes: `invalid_url`, `blocked_address`, `unsupported_scheme`, `all_strategies_failed`, `strategy_unavailable`, `timeout`, `too_large` (only when truncating at `max_response_bytes` cannot give usable output, such as a cut-off PDF; otherwise the body is truncated and `warnings` says so), `rate_limited` (the site kept asking us to back off beyond the retry limit, or queueing exceeded `timeout_s`; includes the last `retry_after_s` when known).
 
 ## `site_memory`
 

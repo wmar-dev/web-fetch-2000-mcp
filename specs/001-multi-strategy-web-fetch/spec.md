@@ -84,7 +84,7 @@ When the same URL is requested again within a freshness window, the server retur
 
 ### User Story 4 - Control output and strategy (Priority: P3)
 
-The caller can choose the output form (markdown by default, or the original raw data), cap the output size, force or exclude a specific strategy, and inspect what the server has learned about a site.
+The caller can choose the output form (markdown by default, or the original raw data), cap the output size, force a specific strategy, and inspect what the server has learned about a site.
 
 **Why this priority**: Gives power users control and keeps responses small for token efficiency, but the server is useful without it.
 
@@ -102,7 +102,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 
 - URL is malformed, uses an unsupported scheme, or points to a local or private network address (must be refused).
 - Page returns a 200 status but is a CAPTCHA, login wall or JavaScript-required placeholder (must count as a failure and escalate).
-- Redirect loops, very slow servers, and responses larger than the size limit.
+- Redirect loops, very slow servers, and responses larger than the size limit (truncated with a warning; too-large error only when truncation is unusable).
 - Non-HTML content: PDFs are text-extracted, text types are converted to markdown, and binaries return metadata only unless raw is requested.
 - The browser components are not installed or fail to start (cheaper strategies must still work and the gap must be reported).
 - Memory store is missing, corrupted or locked (server continues without memory and reports a warning).
@@ -128,7 +128,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 - **FR-010**: The server MUST return content as markdown by default, or as the original data exactly as received when the caller requests raw output, and MUST support a caller-specified maximum output size with a visible truncation marker (raw output is truncated at the size limit, never altered).
 - **FR-011**: The server MUST allow the caller to force a strategy and to enable or disable fallback.
 - **FR-012**: The server MUST provide a way to view and reset what it has learned for a site.
-- **FR-013**: The server MUST enforce timeouts, response-size limits, bounded retries with backoff, and a bounded number of concurrent browser sessions.
+- **FR-013**: The server MUST enforce timeouts, response-size limits, bounded retries with backoff, and a bounded number of concurrent browser sessions. A response body larger than the size limit MUST be truncated at the limit and flagged with a warning, not rejected, unless truncation cannot yield usable output (for example a cut-off PDF), in which case a too-large error is returned.
 - **FR-014**: The server MUST reject malformed URLs, non-web schemes, and local or private network addresses by default.
 - **FR-015**: The server MUST keep working with reduced strategies if browser components are unavailable, and tell the caller which strategies were unavailable.
 - **FR-016**: The server MUST continue operating without memory or cache if their storage is unavailable, and surface a warning.
@@ -148,9 +148,9 @@ The caller can choose the output form (markdown by default, or the original raw 
 
 ### Key Entities
 
-- **Fetch Request**: URL plus options (output format, size cap, forced strategy, fallback allowed, cache mode).
+- **Fetch Request**: URL plus options (output format, size cap, forced strategy, fallback allowed, cache mode, per-strategy timeout, visible-browser flag, markdown-negotiation override).
 - **Strategy**: A named way of retrieving a page, with a relative cost, availability status and failure signals.
-- **Fetch Result**: Content, format, final URL, status, strategy used, strategies attempted with failure reasons, cache status, truncation flag, duration.
+- **Fetch Result**: Content, format, final URL, status, strategy used, strategies attempted with failure reasons, cache status, truncation flag, whether markdown came from the site or was converted, any site-supplied token estimate and content-usage signals, time spent queued or backing off, duration, warnings.
 - **Site Memory**: Per-domain record (with optional path-prefix overrides) of each strategy's recent successes, failures, durations and last-tested time; yields a ranked strategy order.
 - **Cache Entry**: A stored result with its request key, fetch time and freshness window.
 

@@ -10,7 +10,7 @@ No `NEEDS CLARIFICATION` items remain in the Technical Context. Decisions below 
 
 ## 2. HTTP tier
 
-- **Decision**: `httpx` async client with HTTP/2, streaming body reads with a size cap, redirect limit, and manual redirect re-validation.
+- **Decision**: `httpx` async client with HTTP/2, streaming body reads that truncate at the size cap with a warning, redirect limit, and manual redirect re-validation.
 - **Rationale**: The user mentioned Python `requests`; `requests` is blocking and cannot stream-cap cleanly inside an async server. `httpx` has the same ergonomics and is async.
 - **Alternatives**: `requests` in a thread pool (works, worse cancellation and concurrency); `curl_cffi` for TLS impersonation (a strong possible extra tier between HTTP and browser, deferred as a future enhancement to keep v1 to the three required tiers).
 

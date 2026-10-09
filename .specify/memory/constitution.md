@@ -24,7 +24,7 @@ Repeated requests must not repeat work. Fetched and processed results are cached
 
 ## Additional Constraints
 
-- Safety: validate and normalize URLs, block access to local and private network addresses by default, and respect robots and rate limits where applicable.
+- Safety: validate and normalize URLs, block access to local and private network addresses by default, and apply per-domain rate limits and back-off. `robots.txt` is not consulted; operators remain responsible for respecting site terms.
 - Observability: log fetch strategy used, cache hit or miss, duration and failure reason to stderr (never stdout, which carries the MCP protocol). Never log secrets.
 - Simplicity: prefer the smallest design that satisfies the spec; complexity beyond that must be justified in the plan.
 
@@ -38,4 +38,4 @@ Repeated requests must not repeat work. Fetched and processed results are cached
 
 This constitution supersedes other practices. Amendments require a documented rationale, a version bump, and updates to any dependent templates or docs. Versioning is semantic: MAJOR for removed or redefined principles, MINOR for added principles or sections, PATCH for clarifications. Violations must be justified in the plan's complexity tracking or fixed before merge.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08
+**Version**: 1.1.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08

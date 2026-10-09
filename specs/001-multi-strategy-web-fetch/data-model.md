@@ -8,11 +8,12 @@ Storage is one SQLite database (WAL) in the per-user data directory. Types below
 |-------|------|---------|-------|
 | url | string | required | http/https only; normalized; must pass safety check |
 | format | `markdown` \| `raw` | `markdown` | |
-| max_chars | int | 50000 | 1 to 2,000,000; raw is capped by bytes instead (`max_bytes`) |
+| max_chars | int | 50000 | 1 to 2,000,000; applies to markdown output only; raw output is capped by the `max_response_bytes` setting |
 | strategy | `http` \| `browser` \| `stealth` \| `auto` | `auto` | forces the first strategy |
 | fallback | bool | true | when a strategy is forced, false means no escalation |
 | cache | `use` \| `refresh` \| `bypass` | `use` | `refresh` fetches and overwrites; `bypass` fetches without reading or writing |
 | timeout_s | int | 30 | per-strategy cap, max 120 |
+| negotiate_markdown | bool | setting (true) | per-call override of whether the HTTP tier asks for `text/markdown` |
 | headed | bool | false | run browser tiers with a visible window (debugging); ignored by `http` |
 
 ## FetchResult (output, not stored directly)

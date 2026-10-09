@@ -72,7 +72,7 @@ Equivalent environment form: `WEBFETCH_CACHE_TTL_S=7200`.
 | 19 | Container persistence | Run, fetch, stop; run again with the same volume | Memory and cache persist; process runs as non-root |
 | 20 | Container cleanup | Fetch with stealth then stop the container | No orphaned browser processes (tini reaps children) |
 | 21 | Site markdown | `fetch` a Cloudflare zone with Markdown for Agents enabled (or the local test server returning `text/markdown`) | `markdown_source: origin`, `origin_tokens` and `content_signals` populated, no HTML conversion (SC-013) |
-| 22 | Negotiation cache safety | Fetch the same URL with `negotiate_markdown` on, then off | Representations are cached separately |
+| 22 | Negotiation cache safety | Fetch the same URL with `negotiate_markdown: true`, then `false` | Representations are cached separately |
 | 23 | Per-domain limits | Send 50 concurrent `fetch` calls to one domain | In-flight never exceeds `domain_concurrency`; request rate stays within `domain_rate_per_s` (SC-014) |
 | 24 | Back-off on 429 | Local server returns 429 with `Retry-After: 2`, then 200 | Waits about 2 s, retries the same strategy, no escalation, memory unchanged (SC-015) |
 | 25 | Reset and clear | `reset_memory`, `clear_cache` | Counts returned; memory empty afterward |
