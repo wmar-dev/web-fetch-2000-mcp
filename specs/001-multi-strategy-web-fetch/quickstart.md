@@ -6,13 +6,13 @@ Contract details: [contracts/mcp-tools.md](contracts/mcp-tools.md). Data details
 
 - Python 3.12+ and `uv`
 - Install dependencies: `uv sync`
-- Browsers (optional, needed for tiers 2 and 3): `uv run playwright install chromium` and `uv run python -m camoufox fetch`
+- Browsers (optional, needed for strategies 2 and 3): `uv run playwright install chromium` and `uv run python -m camoufox fetch`
 - Linux only: install Chromium's system libraries with `uv run playwright install --with-deps chromium`; running headed or with a virtual display also needs a display or `xvfb`. macOS needs no extra system packages.
 - The data directory must be on a local filesystem (not a network mount) on both platforms.
 
 ## Run with Docker
 
-Build: `docker build --target full -t web-fetch-2000 .` (or `--target slim` for the HTTP tier only).
+Build: `docker build --target full -t web-fetch-2000 .` (or `--target slim` for the HTTP strategy only).
 
 MCP client command:
 
@@ -51,10 +51,10 @@ Equivalent environment form: `WEBFETCH_CACHE_TTL_S=7200`.
 
 | # | Scenario | Steps | Expected |
 |---|----------|-------|----------|
-| 1 | Static page uses cheapest tier | `fetch` a static page | `strategy_used: http`, no browser launched (SC-005) |
+| 1 | Static page uses cheapest strategy | `fetch` a static page | `strategy_used: http`, no browser launched (SC-005) |
 | 2 | JS page escalates | `fetch` a page whose content is injected by script | `attempts` shows `http` failed with `empty_content`, `browser` success |
 | 3 | Protected page escalates to stealth | `fetch` a page that blocks plain and Chromium clients | `strategy_used: stealth`, or an error listing all attempts |
-| 4 | Memory skips failed tiers | Repeat scenario 2 or 3 | First attempt is now the remembered strategy; faster (SC-003); `site_memory` shows the ranking |
+| 4 | Memory skips failed strategies | Repeat scenario 2 or 3 | First attempt is now the remembered strategy; faster (SC-003); `site_memory` shows the ranking |
 | 5 | Memory survives restart | Restart the server, repeat | Same starting strategy (SC-008) |
 | 6 | Cache hit | `fetch` same URL twice | Second has `cache: hit` and returns in under 100 ms (SC-004) |
 | 7 | Cache bypass and refresh | `fetch` with `cache: bypass`, then `refresh` | New network request each time |
@@ -66,7 +66,7 @@ Equivalent environment form: `WEBFETCH_CACHE_TTL_S=7200`.
 | 13 | Shared store concurrency | Start several instances and fetch concurrently | No lost outcomes, store readable (SC-010) |
 | 14 | Config layering | Set a value in the file, override it with an env var, override again per call | Each layer wins in order; `config` shows the source |
 | 15 | Invalid config | Set `WEBFETCH_CACHE_TTL_S=abc` | Server exits with a clear stderr message |
-| 16 | Headed override | `fetch` with `headed: true` on a browser tier | Visible window opens for that call only |
+| 16 | Headed override | `fetch` with `headed: true` on a browser strategy | Visible window opens for that call only |
 | 17 | Cross-platform | Run the offline and `browser` suites on macOS and Linux (CI matrix) | Both pass; paths resolve to the platform's standard user directories |
 | 18 | Container run | Build the image; run it with `docker run -i --rm`; `fetch` with each strategy | All three strategies work with no host browser install (SC-012) |
 | 19 | Container persistence | Run, fetch, stop; run again with the same volume | Memory and cache persist; process runs as non-root |

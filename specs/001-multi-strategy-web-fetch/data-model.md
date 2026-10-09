@@ -13,8 +13,8 @@ Storage is one SQLite database (WAL) in the per-user data directory. Types below
 | fallback | bool | true | when a strategy is forced, false means no escalation |
 | cache | `use` \| `refresh` \| `bypass` | `use` | `refresh` fetches and overwrites; `bypass` fetches without reading or writing |
 | timeout_s | int | 30 | per-strategy cap, max 120 |
-| negotiate_markdown | bool | setting (true) | per-call override of whether the HTTP tier asks for `text/markdown` |
-| headed | bool | false | run browser tiers with a visible window (debugging); ignored by `http` |
+| negotiate_markdown | bool | setting (true) | per-call override of whether the HTTP strategy asks for `text/markdown` |
+| headed | bool | false | run browser strategies with a visible window (debugging); ignored by `http` |
 
 ## FetchResult (output, not stored directly)
 
@@ -23,7 +23,7 @@ Storage is one SQLite database (WAL) in the per-user data directory. Types below
 | url, final_url, status | after redirects |
 | content_type, format | what was returned |
 | content | markdown text, raw text, or empty for binary metadata-only |
-| truncated | bool, with `total_chars` when known |
+| truncated | bool; with `total_chars` (markdown output) or `total_bytes` (raw output) when known |
 | strategy_used | the winning strategy |
 | attempts[] | Attempt entries in order |
 | cache | `hit`, `miss`, `revalidated`, `bypassed` |
@@ -83,4 +83,4 @@ Primary key: (domain, path_prefix, strategy). Updates use atomic SQL expressions
 ## State transitions
 
 - Strategy availability: `unknown` to `available` or `unavailable` (browser binaries missing), re-checked at most once per process start.
-- Site memory: `unseen` (ladder order) to `learning` (fewer than 2 observations per strategy) to `ranked`, with periodic re-probing back through `learning` for cheaper tiers.
+- Site memory: `unseen` (ladder order) to `learning` (fewer than 2 observations per strategy) to `ranked`, with periodic re-probing back through `learning` for cheaper strategies.

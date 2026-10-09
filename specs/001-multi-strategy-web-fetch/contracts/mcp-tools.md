@@ -48,6 +48,8 @@ Fetch a URL and return its content.
 
 `markdown_source` is `origin` when the site served markdown itself (content negotiation); `origin_tokens` and `content_signals` echo the site's token estimate and content-usage signals when supplied. With `format: raw` the content is whatever the site returned, which may already be markdown.
 
+`total_chars` is present for markdown output; raw output reports `total_bytes` instead, and `truncated` applies to both.
+
 Binary content without `format: raw` returns `content: ""` with `content_type`, `size_bytes` and `final_url`.
 
 **Error output**

@@ -122,7 +122,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 - **FR-004**: The server MUST report which strategy produced the result, which were attempted, and why each failed.
 - **FR-005**: The server MUST persistently record per-site strategy outcomes (success, failure, duration) across restarts.
 - **FR-006**: The server MUST use recorded outcomes to choose the starting strategy for a site (using a path-prefix override when one has been learned, otherwise the domain default), preferring the cheapest strategy among those with comparable success.
-- **FR-007**: The server MUST periodically re-test cheaper strategies for sites with remembered preferences so memory can recover from changes.
+- **FR-007**: The server MUST periodically re-test cheaper strategies for sites with remembered preferences so memory can recover from changes (default intervals and thresholds are in research.md, decision 6).
 - **FR-008**: The server MUST cache fetched results with a freshness window, honor the caller's request to bypass or refresh, and bound cache size.
 - **FR-009**: The server MUST coalesce simultaneous identical requests into a single fetch.
 - **FR-010**: The server MUST return content as markdown by default, or as the original data exactly as received when the caller requests raw output, and MUST support a caller-specified maximum output size with a visible truncation marker (raw output is truncated at the size limit, never altered).
@@ -135,7 +135,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 - **FR-017**: The server MUST log strategy choice, cache hit or miss, duration and failure reasons without writing to the protocol channel and without logging secrets; URLs in logs and in strategy memory MUST omit query strings and fragments.
 - **FR-018**: The server MUST release browser resources promptly after use and on shutdown.
 - **FR-019**: The server MUST convert HTML, PDF (text extraction) and text-based types (JSON, XML, CSV, plain text) to markdown, serve any content type as raw on request, and return metadata only (type, size, final URL) for binaries such as images when raw is not requested.
-- **FR-020**: The server MUST create a path-prefix override only after results for that prefix consistently differ from the domain default, and remove it when they converge again.
+- **FR-020**: The server MUST create a path-prefix override only after results for that prefix consistently differ from the domain default (default thresholds in research.md, decision 6), and remove it when they converge again.
 - **FR-021**: The server MUST keep strategy memory and cached results in a single per-user store shared by all clients and projects, and MUST let the caller clear the cache, or all learned data, on request.
 - **FR-022**: The server MUST allow several instances to use the shared store concurrently without corrupting it or losing recorded outcomes; a momentarily stale read is acceptable.
 - **FR-023**: The server MUST be configurable (limits, concurrency, browser visibility, enabled strategies, cache and memory behavior, safety lists) through a settings file and environment variables, with per-call options taking precedence, and MUST reject invalid settings at startup with a clear message.
@@ -163,7 +163,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 - **SC-003**: Repeat fetches of a site that needs a heavier strategy are at least 50% faster than the first fetch because failed cheaper strategies are skipped.
 - **SC-004**: A repeat request within the freshness window is answered in under 100 milliseconds without any network access.
 - **SC-005**: A static page is fetched without launching a browser in 100% of cases.
-- **SC-006**: Server memory use stays bounded under 50 concurrent requests, with no leftover browser processes after the load ends.
+- **SC-006**: With 50 concurrent requests, server resident memory stays under 1 GB and returns to within 20% of its idle baseline within 60 seconds after the load ends, with no leftover browser processes.
 - **SC-007**: When all strategies fail, 100% of error responses name every strategy tried and its reason for failing.
 - **SC-008**: Learned site knowledge survives a server restart in 100% of tested cases.
 - **SC-009**: Requests to local or private network addresses are refused in 100% of tested cases.
@@ -184,6 +184,7 @@ The caller can choose the output form (markdown by default, or the original raw 
 - Each request fetches exactly one URL; crawling, link-following, search and batch fetch are out of scope for v1 (callers can issue parallel requests, which the per-domain limits keep safe).
 - Site-provided markdown is requested through standard content negotiation; sites that do not support it simply return HTML.
 - The primary users are AI assistants connecting through MCP clients, operated by a developer who installs the server locally.
+- SC-001 to SC-003 depend on live sites, so they are verified by an opt-in benchmark run and manual review, not by the offline automated suite.
 - Container images target Linux (amd64, and arm64 where the browser builds exist); host platforms for running them are macOS and Linux.
 - Supported platforms are macOS and Linux (Windows is out of scope for v1).
 - The server is a single-user, local tool whose memory and cache are shared across every MCP client and project the user runs; multi-tenant hosting and authentication are out of scope.

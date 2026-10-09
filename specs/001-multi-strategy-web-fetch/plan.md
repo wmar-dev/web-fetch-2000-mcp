@@ -16,15 +16,15 @@ A local MCP server (stdio) exposing a `fetch` tool that retrieves web content th
 
 **Storage**: SQLite file in the per-user data dir (stdlib `sqlite3`, WAL mode) holding strategy memory and the result cache
 
-**Testing**: `pytest`, `pytest-asyncio`, `respx` (httpx mocking), a local in-process HTTP test server for browser tiers; browser tests marked `browser` and skippable
+**Testing**: `pytest`, `pytest-asyncio`, `respx` (httpx mocking), a local in-process HTTP test server for browser strategies; browser tests marked `browser` and skippable
 
 **Target Platform**: macOS and Linux (both first-class, verified by a CI matrix on `ubuntu-latest` and `macos-latest`), run locally by an MCP client over stdio; Windows out of scope
 
 **Project Type**: single project (library plus MCP server entry point), also distributed as a Docker image (`full` and `slim` targets)
 
-**Performance Goals**: cache hit under 100 ms (SC-004); no browser launched for static pages (SC-005); repeat visits skip failed tiers (SC-003)
+**Performance Goals**: cache hit under 100 ms (SC-004); no browser launched for static pages (SC-005); repeat visits skip failed strategies (SC-003)
 
-**Constraints**: both browser tiers headless by default (configurable, optional per-call `headed`); settings layered defaults < TOML file < `WEBFETCH_*` env < per-call arguments, see research.md decision 15; default 30 s per-strategy timeout, 10 MB response cap, max 2 concurrent browser pages and 1 stealth browser by default, bounded retries; stdout reserved for MCP protocol
+**Constraints**: both browser strategies headless by default (configurable, optional per-call `headed`); settings layered defaults < TOML file < `WEBFETCH_*` env < per-call arguments, see research.md decision 15; default 30 s per-strategy timeout, 10 MB response cap, max 2 concurrent browser pages and 1 stealth browser by default, bounded retries; stdout reserved for MCP protocol
 
 **Scale/Scope**: single user, up to ~50 concurrent requests (SC-006), thousands of domains, cache capped (default 200 MB, LRU eviction)
 
@@ -78,14 +78,17 @@ src/webfetch2000/
 ├── cache.py             # result cache, validators, eviction
 ├── store.py             # SQLite connection, schema, migrations, WAL
 ├── safety.py            # URL validation, private-network blocking
+├── tools_memory.py      # site_memory, reset_memory tools
+├── tools_cache.py       # clear_cache, strategies tools
+├── tools_config.py      # config tool
 ├── ratelimit.py         # per-domain concurrency cap, token bucket, Retry-After back-off
 ├── detect.py            # unusable-content / block / challenge detection
 ├── convert.py           # HTML, PDF, text to markdown; binary metadata
 ├── strategies/
 │   ├── base.py          # Strategy protocol, availability, result type
-│   ├── http.py          # httpx tier; negotiates Accept: text/markdown
-│   ├── browser.py       # Playwright Chromium tier
-│   └── stealth.py       # Camoufox tier
+│   ├── http.py          # httpx strategy; negotiates Accept: text/markdown
+│   ├── browser.py       # Playwright Chromium strategy
+│   └── stealth.py       # Camoufox strategy
 └── logging.py           # stderr-only structured logging
 
 tests/
