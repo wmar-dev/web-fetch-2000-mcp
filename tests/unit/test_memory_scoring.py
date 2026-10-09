@@ -137,3 +137,26 @@ def test_snapshot_shape(mem):
         "last_attempt_at",
     } <= set(first)
     assert snap["next_start_strategy"] == "browser"
+
+
+def test_snapshot_is_deterministic_even_if_random_retest_would_fire(data_dir):
+    # a random re-test (rng below the probability) must never reorder what site_memory shows
+    m = Memory(Store.open(data_dir / "d.db"), Settings(reprobe_probability=1.0), rng=lambda: 0.0)
+    for _ in range(3):
+        m.record("a.com", "/x", "http", False, 50, now=T0)
+        m.record("a.com", "/x", "browser", True, 50, now=T0)
+    for _ in range(20):
+        snap = m.snapshot("a.com", "/x", LADDER, now=T0 + DAY)
+        assert snap["next_start_strategy"] == "browser"
+        assert [r["strategy"] for r in snap["ranking"]][0] == "browser"
+        assert snap["retest_due"] is None  # not yet stale: the random roll is not reported
+    assert m.plan("a.com", "/x", LADDER, now=T0 + DAY).reprobe == "http"  # real fetches still roll
+
+
+def test_snapshot_reports_age_based_retest_due(data_dir):
+    m = Memory(Store.open(data_dir / "d2.db"), Settings(reprobe_after_days=7, half_life_days=365))
+    for _ in range(3):
+        m.record("a.com", "/x", "http", False, 50, now=T0)
+        m.record("a.com", "/x", "browser", True, 50, now=T0)
+    snap = m.snapshot("a.com", "/x", LADDER, now=T0 + 8 * DAY)
+    assert snap["retest_due"] == "http" and snap["next_start_strategy"] == "browser"

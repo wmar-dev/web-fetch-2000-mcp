@@ -175,7 +175,15 @@ class Memory:
         i = ladder.index(start)
         return [start] + ladder[i + 1 :] + ladder[:i]  # escalate first, cheaper ones last
 
-    def plan(self, domain: str, path: str, ladder: list[str], now: float | None = None) -> Plan:
+    def plan(
+        self,
+        domain: str,
+        path: str,
+        ladder: list[str],
+        now: float | None = None,
+        roll: bool = True,
+    ) -> Plan:
+        """Choose the attempt order. ``roll=False`` skips the random re-test (used for display)."""
         now = time.time() if now is None else now
         if not ladder:
             return Plan([], "", "no strategies enabled")
@@ -205,7 +213,7 @@ class Memory:
                     reason = f"learned override for {prefix}: {chosen.strategy} works best there"
 
         order = self._order(ladder, chosen.strategy)
-        probe = self._reprobe_candidate(scores, ladder, chosen.strategy, now)
+        probe = self._reprobe_candidate(scores, ladder, chosen.strategy, now, roll)
         if probe is not None:
             order = [probe.strategy] + [n for n in order if n != probe.strategy]
             age = (
@@ -227,14 +235,19 @@ class Memory:
         return [self._score(rows.get(n), n, now) for n in ladder]
 
     def _reprobe_candidate(
-        self, scores: list[StrategyScore], ladder: list[str], start: str, now: float
+        self,
+        scores: list[StrategyScore],
+        ladder: list[str],
+        start: str,
+        now: float,
+        roll: bool = True,
     ) -> StrategyScore | None:
         cheaper = [s for s in scores if ladder.index(s.strategy) < ladder.index(start)]
         stale_after = self.settings.reprobe_after_days * DAY
         for s in cheaper:  # cheapest first
             if s.last_attempt_at is None or now - s.last_attempt_at >= stale_after:
                 return s
-        if cheaper and self.rng() < self.settings.reprobe_probability:
+        if roll and cheaper and self.rng() < self.settings.reprobe_probability:
             return cheaper[0]
         return None
 
@@ -242,11 +255,12 @@ class Memory:
         self, domain: str, path: str | None, ladder: list[str], now: float | None = None
     ) -> dict[str, Any]:
         now = time.time() if now is None else now
-        plan = self.plan(domain, path or "/", ladder, now)
+        # display must be deterministic: no random re-test; an age-based one is reported separately
+        plan = self.plan(domain, path or "/", ladder, now, roll=False)
         by_name = {s.strategy: s for s in (plan.scores or self.scores(domain, "", ladder, now))}
         ranking = [by_name[n].as_dict() for n in plan.order if n in by_name]
         overrides = []
-        dom_plan = self.plan(domain, "/", ladder, now)
+        dom_plan = self.plan(domain, "/", ladder, now, roll=False)
         with self.store.conn() as c:
             prefixes = [
                 r[0]
@@ -271,5 +285,6 @@ class Memory:
             "ranking": ranking,
             "overrides": overrides,
             "next_start_strategy": plan.start or None,
+            "retest_due": plan.reprobe,
             "reason": plan.reason,
         }

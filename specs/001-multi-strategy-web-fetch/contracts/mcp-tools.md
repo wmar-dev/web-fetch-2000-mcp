@@ -70,7 +70,7 @@ Show what has been learned for a site.
 
 **Input**: `{"domain": "string", "path": "string (optional)"}`
 
-**Output**: `{"domain", "ranking": [{"strategy", "score", "successes", "failures", "mean_duration_ms", "last_attempt_at"}], "overrides": [{"path_prefix", "ranking": [...]}], "next_start_strategy": "http", "reason": "string"}`
+**Output**: `{"domain", "ranking": [{"strategy", "score", "successes", "failures", "mean_duration_ms", "last_attempt_at"}], "overrides": [{"path_prefix", "ranking": [...]}], "next_start_strategy": "http", "retest_due": "strategy or null", "reason": "string"}` (deterministic: the random re-test used for real fetches is never shown; `retest_due` names a cheaper strategy whose last attempt is older than `reprobe_after_days`)
 
 ## `reset_memory`
 

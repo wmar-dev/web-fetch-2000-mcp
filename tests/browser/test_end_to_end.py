@@ -30,7 +30,8 @@ async def test_static_js_and_protected_pages(data_dir, site):
 
 
 async def test_memory_skips_known_failures_and_cache_hits(data_dir, site):
-    settings = make_settings(data_dir=str(data_dir), timeout_s=60)
+    # no random re-tests: this test asserts exactly which strategies are attempted
+    settings = make_settings(data_dir=str(data_dir), timeout_s=60, reprobe_probability=0)
     url = site.url("/firefox-only")
     async with mcp_client(settings) as client:
         for _ in range(2):  # learning visits
