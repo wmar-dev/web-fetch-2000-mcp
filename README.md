@@ -14,6 +14,56 @@ escalates when a strategy fails or returns unusable content (error status, chall
 JavaScript shell), and records the outcome. Results are cached, identical in-flight requests
 share one fetch, and each domain is rate limited. Output is **markdown** by default.
 
+## Quickstart
+
+1. Install (needs Python 3.12+ and [uv](https://docs.astral.sh/uv/)):
+
+   ```bash
+   git clone https://github.com/wmar-dev/web-fetch-2000-mcp && cd web-fetch-2000-mcp
+   uv sync
+   ```
+
+   This is enough to try the `http` strategy. Add the browser strategies later, see [Install](#install).
+
+2. Register the server with your MCP client (paths must be absolute):
+
+   ```json
+   {
+     "mcpServers": {
+       "web-fetch": {
+         "command": "uv",
+         "args": ["run", "--directory", "/path/to/web-fetch-2000-mcp", "webfetch2000"]
+       }
+     }
+   }
+   ```
+
+3. Restart the client and ask it to fetch a page, for example "fetch `https://example.com`". The
+   client calls the `fetch` tool:
+
+   ```json
+   { "url": "https://example.com" }
+   ```
+
+   The result is abridged here:
+
+   ```json
+   {
+     "url": "https://example.com",
+     "status": 200,
+     "format": "markdown",
+     "content": "# Example Domain\n\nThis domain is for use in illustrative examples...",
+     "strategy_used": "http",
+     "attempts": [{ "strategy": "http", "outcome": "success", "reason": null, "duration_ms": 180 }],
+     "cache": "miss"
+   }
+   ```
+
+   `attempts` lists every strategy tried and why each failed, so you can see when the server
+   escalated to a browser. Fetch the same site again and `site_memory` shows what it learned.
+
+To check the setup, call the `strategies` tool: it lists which strategies are available.
+
 ## Install
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
