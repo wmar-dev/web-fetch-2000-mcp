@@ -73,6 +73,17 @@ async def test_browser_load_bounded_and_no_leftover_processes(site, data_dir):
         settings, {"http": HttpStrategy(settings, limiter), "browser": browser}, limiter=limiter
     )
     me = psutil.Process()
+    # other tests may leave helper processes (e.g. multiprocessing's resource tracker) behind:
+    # only processes started by this test count
+    baseline = {c.pid for c in me.children(recursive=True)}
+
+    def new_children():
+        return [
+            c
+            for c in me.children(recursive=True)
+            if c.pid not in baseline and c.is_running() and c.status() != psutil.STATUS_ZOMBIE
+        ]
+
     tasks = [
         asyncio.create_task(router.fetch(FetchRequest(url=site.url(f"/js?i={i}"), cache="bypass")))
         for i in range(20)
@@ -84,8 +95,8 @@ async def test_browser_load_bounded_and_no_leftover_processes(site, data_dir):
     results = await asyncio.gather(*tasks)
     assert all(r.strategy_used == "browser" for r in results)
     assert peak <= 2
-    assert sum(c.memory_info().rss for c in me.children(recursive=True)) / 1024 / 1024 < 1024
+    assert sum(c.memory_info().rss for c in new_children()) / 1024 / 1024 < 1024
 
     await router.close()
     await asyncio.sleep(1)
-    assert not [c for c in me.children(recursive=True) if c.is_running()]
+    assert not new_children()
