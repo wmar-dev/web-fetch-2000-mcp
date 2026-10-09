@@ -30,8 +30,8 @@ window tests need `WEBFETCH_TEST_HEADED=1`). Load tests (`slow`, with and withou
 | SC-008 | Met | `test_learning_survives_restart`. |
 | SC-009 | Met | `test_safety.py`, `test_fetch_contract.py`. |
 | SC-010 | Met | `test_store_concurrency.py` (5 processes, no lost outcomes). |
-| SC-011 | **Partly verified** | The full suite passes on macOS. The Linux run happens in the CI matrix, which has not been executed from here. The `slim` image ran its smoke test on linux/aarch64. |
-| SC-012 | **Partly verified** | `slim` image built and passed `scripts/smoke_container.py` (HTTP fetch, store, strategies report). The `full` image build could not be completed: Docker Desktop failed with I/O errors because the host disk was nearly full (about 650 MB free). Camoufox's Linux arm64 build was confirmed to download during that build. The `full` image and its browser smoke test remain to be run. |
+| SC-011 | **Partly verified** | The full suite passes on macOS. The Linux run happens in the CI matrix, which has not been executed from here. Only the container smoke tests (HTTP, Chromium, Camoufox) have run on Linux (aarch64). |
+| SC-012 | Met | Both images built on linux/aarch64 and passed `scripts/smoke_container.py`: `slim` (HTTP fetch, strategies report, store) and `full` (HTTP, Chromium and forced Camoufox fetches over stdio, no host browsers). The container runs as uid 10001 and the memory store persists across container runs with a named volume. |
 | SC-013 | Met | `test_origin_markdown_passthrough_via_router`. |
 | SC-014 | Met | `test_fifty_concurrent_requests_respect_domain_limits`. |
 | SC-015 | Met | `test_backoff.py`, `test_deferred_outcomes_are_not_recorded`. |
@@ -39,6 +39,6 @@ window tests need `WEBFETCH_TEST_HEADED=1`). Load tests (`slow`, with and withou
 ## Known gaps
 
 - SC-003 below target on the sample sites (see above).
-- `full` Docker image not built or smoke-tested; Linux CI matrix not yet executed.
+- Linux CI matrix not yet executed; the pytest suites have only run on macOS.
 - Pages with very little text (for example `example.com`) are treated as empty shells and escalate
   to a browser; `min_content_chars` can be lowered.

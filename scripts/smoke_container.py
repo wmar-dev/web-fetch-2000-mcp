@@ -127,6 +127,7 @@ def main() -> int:
                     },
                 },
             )
+            assert not res["result"].get("isError"), res["result"]["content"]
             sc = res["result"]["structuredContent"]
             assert sc["strategy_used"] == "stealth", res
             print("OK stealth fetch")

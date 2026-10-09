@@ -42,10 +42,14 @@ ENTRYPOINT ["tini", "--", "webfetch2000"]
 
 # ---- full: browsers + virtual display -----------------------------------------------------
 FROM base AS full
-# Chromium system libraries + xvfb (Camoufox virtual-display mode)
-RUN playwright install-deps chromium \
+# Chromium and Firefox (Camoufox) system libraries + xvfb (Camoufox virtual-display mode)
+RUN playwright install-deps chromium firefox \
     && apt-get update && apt-get install -y --no-install-recommends xvfb \
     && rm -rf /var/lib/apt/lists/*
+# Camoufox keeps its fingerprint model inside the fpgen package directory (importing fpgen would
+# download it as root), so make that directory owned by the runtime user before fetching.
+RUN d="$(python -c 'import importlib.util as u; print(u.find_spec("fpgen").submodule_search_locations[0])')" \
+    && mkdir -p "$d/data" && chown -R fetch:fetch "$d"
 USER fetch
 RUN playwright install chromium && python -m camoufox fetch
 # the container is the isolation boundary, so Chromium's own sandbox is disabled here

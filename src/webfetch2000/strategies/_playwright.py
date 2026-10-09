@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import re
 import time
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
@@ -40,6 +41,19 @@ _CRASH_MARKERS = (
     "browser has been closed",
     "Connection closed",
 )
+
+
+_HINTS = re.compile(r"error|cannot|can't|failed|not found|denied|missing", re.I)
+
+
+def _summarize(message: str) -> str:
+    """One useful line from a multi-line launch failure (first line plus the first hint line)."""
+    lines = [ln.strip(" -[]") for ln in message.splitlines() if ln.strip()]
+    if not lines:
+        return "unknown error"
+    first = lines[0][:120]
+    hint = next((ln for ln in lines[1:] if _HINTS.search(ln) and "Sandbox" not in ln), None)
+    return f"{first} | {hint[:160]}" if hint else first
 
 
 @dataclass
@@ -164,7 +178,7 @@ class PlaywrightStrategy(Strategy):
                 try:
                     h = await self._launch(headless)
                 except Exception as e:
-                    raise StrategyError("browser_launch_failed", str(e)[:300]) from e
+                    raise StrategyError(f"browser_launch_failed: {_summarize(str(e))}") from e
                 self._handles[headless] = h
                 log.info("browser launched", extra={"strategy": self.name, "headless": headless})
             if self._reaper is None or self._reaper.done():
